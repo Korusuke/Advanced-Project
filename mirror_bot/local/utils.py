@@ -55,3 +55,31 @@ class MirrorVelocityPositionHWController:
         self.head.set_control("ctrl_joint_positions", self.des_position)
         self.head.set_control("ctrl_joint_velocities", self.des_velocity)
         return
+
+
+class MirrorHeadController:
+    def __init__(self, head, leader_head):
+        """
+        Args:
+            head: Instance of DGHead or SimHead.
+            leader_head: Instance of DGHead or SimHead
+        """
+        self.head = head
+        self.leader_head = leader_head
+
+        self.joint_positions = head.get_sensor("joint_positions")
+        self.des_position = leader_head.get_sensor("joint_positions")
+        self.des_velocity = leader_head.get_sensor("joint_velocities")
+
+    def warmup(self, thread_head):
+        return
+
+    def run(self, thread_head):
+        P = 3 * np.ones(3)
+        D = 0.05 * np.ones(3)
+        self.tau = (
+            P * (self.des_position - self.joint_positions)
+            - D * self.des_velocity
+        )
+        self.head.set_control("ctrl_joint_torques", self.tau)
+        return
