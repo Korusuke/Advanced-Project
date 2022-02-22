@@ -18,42 +18,45 @@ shared_vars = {'leader_pos': np.array([0., 0., 0.]), 'leader_vel': np.array([0.,
 def socket_process():
     global shared_vars
     sock = socket.socket()
-    print("Connecting to leader...")
-
-    sock.connect(("127.0.0.1", 12346))
-    print("Leader connected")
+    sock.bind(("127.0.0.1", 12346))
+    sock.listen(3)
+    print("Waiting for follower/s to connect")
+    conn = sock.accept()
+    print("Follower connected")
     print("Starting mirroring in 3 seconds")
     time.sleep(3)
 
     while True:
-        my_pos = shared_vars['follower_pos'].tolist()
-        my_vel = shared_vars['follower_vel'].tolist()
+        serial_rec_data = conn[0].recv(4096)
+        data = json.loads(serial_rec_data.decode('utf-8').strip())
+
+        shared_vars['follower_pos'] = np.asarray(data['position'])
+        shared_vars['follower_vel'] = np.asarray(data['velocity'])
+
+        # Send my pos and vel
+        my_pos = shared_vars['leader_pos'].tolist()
+        my_vel = shared_vars['leader_vel'].tolist()
         data = {
             'position': my_pos,
             'velocity': my_vel,
             'time': time.time()
         }
         serial_data = json.dumps(data)
-
-        sock.send(serial_data.encode())
-        serial_rec_data = sock.recv(4096)
-        data = json.loads(serial_rec_data.decode('utf-8').strip())
-
-        shared_vars['leader_pos'] = np.asarray(data['position'])
-        shared_vars['leader_vel'] = np.asarray(data['velocity'])
+        conn[0].send(serial_data.encode())
 
     sock.shutdown(socket.SHUT_RDWR)
     sock.close()
 
 
-def follower():
+def leader():
     global shared_vars
     head = dynamic_graph_manager_cpp_bindings.DGMHead(
-        NYUFingerDoubleConfig1.dgm_yaml_path)
+        NYUFingerDoubleConfig0.dgm_yaml_path)
+
+    pin_robot = NYUFingerDoubleConfig0.pin_robot
 
     hold_ctrl = HoldPDController(head, 3., 0.05, False)
-    copy_ctrl = MirrorVelocityPositionHWController(
-        head, shared_vars)
+    grav_ctrl = GravityCompensationController(head, pin_robot, shared_vars)
 
     thread_head = ThreadHead(
         0.001,  # dt.
@@ -62,7 +65,7 @@ def follower():
         [],
     )
     thread_head.start()
-    thread_head.switch_controllers([copy_ctrl])
+    thread_head.switch_controllers([grav_ctrl])
 
     return head
 
@@ -72,5 +75,10 @@ if __name__ == "__main__":
     thread = threading.Thread(target=socket_process)
     thread.daemon = True
     thread.start()
-    # start follower program
-    follower_head = follower()
+
+    # start leader program
+    leader_head = leader()
+    while True:
+        r = input()
+        if str(r) == 'exit':
+            break

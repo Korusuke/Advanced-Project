@@ -1,3 +1,5 @@
+import time
+import socket
 import dynamic_graph_manager_cpp_bindings
 from dynamic_graph_head import HoldPDController
 from robot_properties_nyu_finger.config import NYUFingerDoubleConfig0, NYUFingerDoubleConfig1
@@ -6,14 +8,18 @@ from dynamic_graph_head import ThreadHead
 from utils import GravityCompensationController, MirrorHeadController, MirrorVelocityPositionHWController
 
 
+shared_vars = {'leader_pos': None, 'leader_vel': None}
+
+
 def leader():
+    global shared_vars
     head = dynamic_graph_manager_cpp_bindings.DGMHead(
         NYUFingerDoubleConfig0.dgm_yaml_path)
 
     pin_robot = NYUFingerDoubleConfig0.pin_robot
 
     hold_ctrl = HoldPDController(head, 3., 0.05, False)
-    grav_ctrl = GravityCompensationController(head, pin_robot)
+    grav_ctrl = GravityCompensationController(head, pin_robot, shared_vars)
 
     thread_head = ThreadHead(
         0.001,  # dt.
@@ -27,13 +33,14 @@ def leader():
     return head
 
 
-def follower(leader_head):
+def follower():
+    global shared_vars
     head = dynamic_graph_manager_cpp_bindings.DGMHead(
         NYUFingerDoubleConfig1.dgm_yaml_path)
 
     hold_ctrl = HoldPDController(head, 3., 0.05, False)
-    copy_ctrl = MirrorHeadController(
-        head, leader_head)
+    copy_ctrl = MirrorVelocityPositionHWController(
+        head, shared_vars)
 
     thread_head = ThreadHead(
         0.001,  # dt.
@@ -52,4 +59,4 @@ if __name__ == "__main__":
     # start leader program
     leader_head = leader()
     # start follower program
-    follower_head = follower(leader_head)
+    follower_head = follower()

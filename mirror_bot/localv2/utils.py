@@ -3,7 +3,7 @@ import pinocchio as pin
 
 
 class GravityCompensationController:
-    def __init__(self, head, pin_robot):
+    def __init__(self, head, pin_robot, shared_vars):
         """
         Args:
             head: Instance of DGHead or SimHead.
@@ -12,6 +12,9 @@ class GravityCompensationController:
 
         self.joint_positions = head.get_sensor("joint_positions")
         self.joint_velocities = head.get_sensor("joint_velocities")
+
+        shared_vars['leader_pos'] = self.joint_positions
+        shared_vars['leader_vel'] = self.joint_velocities
 
         self.zeros_pos = np.zeros_like(self.joint_positions)
         self.robot = pin_robot
@@ -32,17 +35,17 @@ class GravityCompensationController:
 
 
 class MirrorVelocityPositionHWController:
-    def __init__(self, head, leader_head):
+    def __init__(self, head, shared_vars):
         """
         Args:
             head: Instance of DGHead or SimHead.
             leader_head: Instance of DGHead or SimHead
         """
         self.head = head
-        self.leader_head = leader_head
+        self.shared_vars = shared_vars
 
-        self.des_position = leader_head.get_sensor("joint_positions")
-        self.des_velocity = leader_head.get_sensor("joint_velocities")
+        self.des_position = shared_vars.get("leader_pos")
+        self.des_velocity = shared_vars.get("leader_vel")
 
     def warmup(self, thread_head):
         P = 3 * np.ones(3)
@@ -52,25 +55,27 @@ class MirrorVelocityPositionHWController:
         return
 
     def run(self, thread_head):
+
         self.head.set_control("ctrl_joint_positions", self.des_position)
         self.head.set_control("ctrl_joint_velocities", self.des_velocity)
         return
 
 
 class MirrorHeadController:
-    def __init__(self, head, leader_head):
+    def __init__(self, head, shared_vars):
         """
         Args:
             head: Instance of DGHead or SimHead.
             leader_head: Instance of DGHead or SimHead
         """
         self.head = head
-        self.leader_head = leader_head
+        self.shared_vars = shared_vars
+
+        self.des_position = shared_vars.get("leader_pos")
+        self.des_velocity = shared_vars.get("leader_vel")
 
         self.joint_positions = head.get_sensor("joint_positions")
         self.joint_velocities = head.get_sensor("joint_velocities")
-        self.des_position = leader_head.get_sensor("joint_positions")
-        self.des_velocity = leader_head.get_sensor("joint_velocities")
 
     def warmup(self, thread_head):
         return
@@ -78,6 +83,7 @@ class MirrorHeadController:
     def run(self, thread_head):
         P = 3 * np.ones(3)
         D = 0.05 * np.ones(3)
+
         self.tau = (
             P * (self.des_position - self.joint_positions)
             + D * (self.des_velocity - self.joint_velocities)
