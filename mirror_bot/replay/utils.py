@@ -18,7 +18,9 @@ class RecorderController:
     def __init__(self, head, pin_robot, fileName):
         """
         Args:
-            head: Instance of DGHead or SimHead.
+            head: Instance of DGHead or SimHead
+            pin_robot: Pinocchio robot instance
+            fileName: Name of file to write robot position and velocity
         """
         self.head = head
 
@@ -56,8 +58,9 @@ class PlayBackController:
     def __init__(self, head, pin_robot, fileName):
         """
         Args:
-            head: Instance of DGHead or SimHead.
-            leader_head: Instance of DGHead or SimHead
+            head: Instance of DGHead or SimHead
+            pin_robot: Pinocchio robot instance
+            fileName: Name of file to read robot position and velocity
         """
         self.head = head
 

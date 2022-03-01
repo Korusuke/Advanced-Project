@@ -6,7 +6,9 @@ class GravityCompensationController:
     def __init__(self, head, pin_robot, shared_vars):
         """
         Args:
-            head: Instance of DGHead or SimHead.
+            head: Instance of DGHead or SimHead
+            pin_robot: Pinocchio robot instance
+            shared_vars: Dictonary containing all the shared variables
         """
         self.head = head
 
@@ -38,7 +40,7 @@ class MirrorVelocityPositionHWController:
         """
         Args:
             head: Instance of DGHead or SimHead.
-            leader_head: Instance of DGHead or SimHead
+            shared_vars: Dictonary containing all the shared variables
         """
         self.head = head
         self.shared_vars = shared_vars
@@ -72,8 +74,8 @@ class MirrorHeadController:
     def __init__(self, head, shared_vars):
         """
         Args:
-            head: Instance of DGHead or SimHead.
-            leader_head: Instance of DGHead or SimHead
+            head: Instance of DGHead or SimHead
+            shared_vars: Dictonary containing all the shared variables
         """
         self.head = head
         self.shared_vars = shared_vars
@@ -109,8 +111,9 @@ class MirrorHeadGravityController:
     def __init__(self, head, pin_robot, shared_vars):
         """
         Args:
-            head: Instance of DGHead or SimHead.
-            leader_head: Instance of DGHead or SimHead
+            head: Instance of DGHead or SimHead
+            pin_robot: Pinocchio robot instance
+            shared_vars: Dictonary containing all the shared variables
         """
         self.head = head
         self.shared_vars = shared_vars
