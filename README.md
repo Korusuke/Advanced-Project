@@ -48,3 +48,16 @@ Force feedback from the follower bot so that the controller can feel if somethin
 
 In all the leader uses, a P controller in addition to the gravity compensation we had in previous experiments. The follower is same as previous, a PD controller + gravity compensation.
 
+
+
+## Packet loss and delay simulation
+
+We simulate packet loss using the linuc inbuilt netem tool. Since we are using local sockets, we can just use this tool on the loopback interface `lo` as follows: 
+```
+tc qdisc change dev lo root netem delay 15ms 5ms 25% loss 1% 25%           
+```
+
+The above means the following:
+- 15ms +- 5ms delay with the next random element depending 25% on the last one. This isn't true statistical correlation, but an approximation.
+- 1% of packets to be lost, and each successive probability depends by a quarter on the last one.
+
