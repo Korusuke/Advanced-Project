@@ -4,14 +4,20 @@ import dynamic_graph_manager_cpp_bindings
 from dynamic_graph_head import HoldPDController
 from robot_properties_nyu_finger.config import NYUFingerDoubleConfig0, NYUFingerDoubleConfig1
 from dynamic_graph_head import ThreadHead
+import numpy as np
 
 from utils import (GravityCompensationController,
                    MirrorHeadController,
                    MirrorVelocityPositionHWController,
                    MirrorHeadGravityController)
 
+import sys
+import os
+sys.path.append(os.path.abspath('../graphing'))
+import grapher
 
-shared_vars = {'leader_pos': None, 'leader_vel': None}
+shared_vars = {'leader_pos': np.array([0., 0., 0.]), 'leader_vel': np.array([0., 0., 0.]),
+               'follower_pos': np.array([0., 0., 0.]), 'follower_vel': np.array([0., 0., 0.])}
 
 
 def leader():
@@ -60,8 +66,10 @@ def follower():
 
 
 if __name__ == "__main__":
-
     # start leader program
     leader_head = leader()
     # start follower program
     follower_head = follower()
+    # start grapher
+    g = grapher.Grapher(sampleinterval=0.1, timewindow=10., datafeed=shared_vars)
+    g.run()

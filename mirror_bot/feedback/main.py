@@ -9,6 +9,10 @@ import numpy as np
 from utils import (GravityCompensationControllerWithFeedback,
                    MirrorHeadGravityControllerForceFeedback)
 
+import sys
+import os
+sys.path.append(os.path.abspath('../graphing'))
+import grapher
 
 shared_vars = {'leader_pos': np.array([0., 0., 0.]), 'leader_vel': np.array([0., 0., 0.]),
                'follower_pos': np.array([0., 0., 0.]), 'follower_vel': np.array([0., 0., 0.])}
@@ -66,3 +70,6 @@ if __name__ == "__main__":
     leader_head = leader()
     # start follower program
     follower_head = follower()
+    # start grapher
+    g = grapher.Grapher(sampleinterval=0.1, timewindow=10., datafeed=shared_vars)
+    g.run()

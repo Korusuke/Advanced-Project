@@ -110,6 +110,9 @@ class MirrorHeadGravityController:
         self.joint_positions = head.get_sensor("joint_positions")
         self.joint_velocities = head.get_sensor("joint_velocities")
 
+        shared_vars['follower_pos'] = np.asarray(self.joint_positions)
+        shared_vars['follower_vel'] = np.asarray(self.joint_velocities)
+
         self.zeros_pos = np.zeros_like(self.joint_positions)
         self.robot = pin_robot
 

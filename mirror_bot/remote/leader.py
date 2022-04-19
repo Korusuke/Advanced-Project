@@ -10,6 +10,10 @@ from dynamic_graph_head import ThreadHead
 
 from utils import GravityCompensationController, MirrorHeadController, MirrorVelocityPositionHWController
 
+import sys
+import os
+sys.path.append(os.path.abspath('../graphing'))
+import grapher
 
 shared_vars = {'leader_pos': np.array([0., 0., 0.]), 'leader_vel': np.array([0., 0., 0.]),
                'follower_pos': np.array([0., 0., 0.]), 'follower_vel': np.array([0., 0., 0.])}
@@ -78,7 +82,7 @@ if __name__ == "__main__":
 
     # start leader program
     leader_head = leader()
-    while True:
-        r = input()
-        if str(r) == 'exit':
-            break
+    
+    # start grapher
+    g = grapher.Grapher(sampleinterval=0.1, timewindow=10., datafeed=shared_vars)
+    g.run()
